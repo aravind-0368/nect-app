@@ -1,0 +1,15 @@
+.App {
+  min-height: 100vh;
+}
+
+.App-main {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .App {
+    min-height: 100vh;
+  }
+}

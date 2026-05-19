@@ -1,0 +1,180 @@
+.today-exercise {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.today-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.today-exercise h2 {
+  color: #333;
+  margin: 0;
+  font-size: 24px;
+}
+
+.today-day {
+  background: #667eea;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-size: 16px;
+}
+
+/* Exercises Container */
+.exercises-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.exercise-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.exercise-card:hover {
+  border-color: #667eea;
+  background: white;
+}
+
+.exercise-card.completed {
+  background: #e8f5e9;
+  border-color: #4CAF50;
+}
+
+/* Checkbox */
+.exercise-checkbox {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.exercise-checkbox input {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #667eea;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exercise-checkbox input:checked {
+  background: #667eea;
+  border-color: #667eea;
+}
+
+.checkmark {
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  color: white;
+  font-weight: bold;
+  pointer-events: none;
+  display: none;
+}
+
+.exercise-checkbox input:checked + .checkmark {
+  display: block;
+}
+
+/* Exercise Details */
+.exercise-details-card {
+  flex: 1;
+}
+
+.exercise-details-card h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.exercise-card.completed .exercise-details-card h3 {
+  color: #4CAF50;
+  text-decoration: line-through;
+}
+
+.exercise-stats {
+  display: flex;
+  gap: 15px;
+}
+
+.stat {
+  font-size: 13px;
+  color: #666;
+}
+
+.stat strong {
+  color: #667eea;
+  font-weight: 700;
+}
+
+/* Completion Badge */
+.completion-badge {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.completion-badge p {
+  margin: 0;
+}
+
+/* Progress Info */
+.progress-info {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.progress-info p {
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .today-exercise {
+    padding: 20px;
+  }
+
+  .exercises-container {
+    grid-template-columns: 1fr;
+  }
+
+  .exercise-card {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,221 @@
+.food-tracker {
+  display: grid;
+  gap: 30px;
+}
+
+.food-input-panel {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+}
+
+.food-entry, .food-db-panel {
+  background: white;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+}
+
+.food-entry h2,
+.food-db-panel h2,
+.food-db-panel h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.input-row,
+.custom-input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.input-row label,
+.custom-input-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+  color: #444;
+}
+
+.input-row input,
+.custom-input-row input {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.input-row input:focus,
+.custom-input-row input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+}
+
+.nutrition-preview {
+  margin-top: 20px;
+}
+
+.nutrition-preview h3 {
+  margin-bottom: 16px;
+}
+
+.nutrition-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.nutrition-card {
+  background: #f5f7ff;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  color: #333;
+}
+
+.nutrition-card span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #777;
+}
+
+.nutrition-card strong {
+  font-size: 18px;
+}
+
+.preview-empty {
+  margin: 0;
+  color: #999;
+}
+
+.log-food-btn,
+.add-food-db-btn {
+  margin-top: 20px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #667eea;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.log-food-btn:hover,
+.add-food-db-btn:hover {
+  background: #5568d3;
+}
+
+.food-db-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.food-db-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  background: #fafbff;
+}
+
+.food-db-item small {
+  color: #777;
+}
+
+.custom-food-form {
+  display: grid;
+  gap: 16px;
+}
+
+.custom-action {
+  display: none;
+}
+
+.food-log-table {
+  background: white;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+}
+
+.food-log-table h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+th,
+td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f5;
+}
+
+th {
+  color: #555;
+  font-size: 14px;
+}
+
+td {
+  color: #444;
+  font-size: 14px;
+}
+
+.empty-row {
+  text-align: center;
+  color: #999;
+  padding: 24px 0;
+}
+
+.delete-log-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: #ffe3e3;
+  color: #d93025;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.delete-log-btn:hover {
+  background: #ffd0d0;
+}
+
+@media (max-width: 980px) {
+  .food-input-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .nutrition-cards {
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .input-row,
+  .custom-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  table {
+    min-width: 600px;
+  }
+}
