@@ -6,6 +6,10 @@ function TaskModule({ tasks, onAddTask, onToggleTask, onDeleteTask }) {
   const [taskName, setTaskName] = useState('');
   const [taskPoints, setTaskPoints] = useState('');
 
+  const todayKey = new Date().toISOString().split('T')[0];
+  const todayTasks = tasks.filter(task => task.date === todayKey);
+  const displayTasks = todayTasks.length > 0 ? todayTasks : tasks;
+
   const handleAddTask = () => {
     if (taskName.trim() === '' || taskPoints.trim() === '') {
       alert('Please fill in all fields');
@@ -79,6 +83,7 @@ function TaskModule({ tasks, onAddTask, onToggleTask, onDeleteTask }) {
       )}
 
       <div className="task-table-container">
+        <h3 className="task-table-title">{todayTasks.length > 0 ? "Today's Tasks" : 'All Tasks'}</h3>
         <table className="task-table">
           <thead>
             <tr>
@@ -89,12 +94,12 @@ function TaskModule({ tasks, onAddTask, onToggleTask, onDeleteTask }) {
             </tr>
           </thead>
           <tbody>
-            {tasks.length === 0 ? (
+            {displayTasks.length === 0 ? (
               <tr className="empty-row">
                 <td colSpan="4">No tasks yet. Add one to get started!</td>
               </tr>
             ) : (
-              tasks.map(task => (
+              displayTasks.map(task => (
                 <tr key={task.id} className={`task-row ${task.status.toLowerCase().replace(' ', '-')}`}>
                   <td className="task-name">{task.name}</td>
                   <td className="task-status">

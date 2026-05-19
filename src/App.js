@@ -6,8 +6,6 @@ import DashboardPage from './pages/DashboardPage';
 import TasksPage from './pages/TasksPage';
 import ExercisePage from './pages/ExercisePage';
 import FoodPage from './pages/FoodPage';
-import { database } from './firebase';
-import { ref, onValue, get, push, set, update, remove } from 'firebase/database';
 
 const defaultFoodItems = [
   { name: 'Apple', calories_per_100g: 52, protein_per_100g: 0.3, carbs_per_100g: 14, fat_per_100g: 0.2 },
@@ -25,76 +23,60 @@ function App() {
   const [exerciseHistory, setExerciseHistory] = useState({});
   const [foodLog, setFoodLog] = useState([]);
   const [foodDatabase, setFoodDatabase] = useState(defaultFoodItems);
+  const [backendError, setBackendError] = useState(null);
   const bmrTarget = 2000;
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || '';
 
   useEffect(() => {
-    const foodDatabaseRef = ref(database, 'foodDatabase');
-    const foodLogRef = ref(database, 'foodLog');
-    const tasksRef = ref(database, 'tasks');
+    const fetchData = async () => {
+      try {
+        const [tasksRes, foodsRes, foodLogRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/tasks`),
+          fetch(`${API_BASE_URL}/api/foods`),
+          fetch(`${API_BASE_URL}/api/food-log`)
+        ]);
 
-    const transformSnapshot = (snapshot) => {
-      const value = snapshot.val();
-      if (!value) return [];
-      return Object.entries(value).map(([id, item]) => ({ id, ...item }));
-    };
-
-    const removeExpiredTasks = (tasksList) => {
-      const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-      tasksList.forEach((task) => {
-        const createdAt = task.createdAt ? Number(task.createdAt) : null;
-        if (createdAt && createdAt <= thirtyDaysAgo) {
-          remove(ref(database, `tasks/${task.id}`)).catch(error => {
-            console.error(`Error removing expired task ${task.id}:`, error);
-          });
+        if (!tasksRes.ok || !foodsRes.ok || !foodLogRes.ok) {
+          throw new Error('Could not load saved data from backend');
         }
-      });
-    };
 
-    const ensureDefaultFoodData = async () => {
-      const snapshot = await get(foodDatabaseRef);
-      if (!snapshot.exists()) {
-        await Promise.all(defaultFoodItems.map(item => push(foodDatabaseRef, item)));
+        const [tasksData, foodsData, foodLogData] = await Promise.all([
+          tasksRes.json(),
+          foodsRes.json(),
+          foodLogRes.json()
+        ]);
+
+        setTasks(tasksData.map(task => ({
+          ...task,
+          date: task.date || (task.createdAt ? new Date(Number(task.createdAt)).toISOString().split('T')[0] : undefined)
+        })));
+
+        if (foodsData.length) {
+          setFoodDatabase(foodsData);
+        }
+
+        setFoodLog(foodLogData.map(entry => ({
+          ...entry,
+          quantity_g: Number(entry.quantity_g),
+          calories: Number(entry.calories),
+          protein: Number(entry.protein),
+          carbs: Number(entry.carbs),
+          fat: Number(entry.fat)
+        })));
+      } catch (error) {
+        console.error('Error loading data:', error);
+        setBackendError('Unable to load saved data. Make sure the backend server is running.');
       }
     };
 
-    ensureDefaultFoodData().catch(error => console.error('Error initializing default food data:', error));
-
-    const foodDatabaseListener = onValue(foodDatabaseRef, (snapshot) => {
-      const items = transformSnapshot(snapshot);
-      if (items.length) {
-        setFoodDatabase(items);
-      } else {
-        setFoodDatabase(defaultFoodItems);
-      }
-    });
-
-    const foodLogListener = onValue(foodLogRef, (snapshot) => {
-      setFoodLog(transformSnapshot(snapshot));
-    });
-
-    const tasksListener = onValue(tasksRef, (snapshot) => {
-      const items = transformSnapshot(snapshot);
-      const nonExpiredItems = items.filter((task) => {
-        const createdAt = task.createdAt ? Number(task.createdAt) : null;
-        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        return !createdAt || createdAt > thirtyDaysAgo;
-      });
-      setTasks(nonExpiredItems);
-      removeExpiredTasks(items);
-    });
-
-    return () => {
-      foodDatabaseListener();
-      foodLogListener();
-      tasksListener();
-    };
+    fetchData();
   }, []);
 
   const todayKey = new Date().toISOString().split('T')[0];
 
   const foodHistory = useMemo(() => {
     return foodLog.reduce((acc, entry) => {
-      acc[entry.date] = (acc[entry.date] || 0) + entry.calories;
+      acc[entry.date] = (acc[entry.date] || 0) + Number(entry.calories);
       return acc;
     }, {});
   }, [foodLog]);
@@ -103,38 +85,121 @@ function App() {
 
   const proteinToday = useMemo(() => {
     return foodLog.reduce((sum, entry) => {
-      return entry.date === todayKey ? sum + entry.protein : sum;
+      return entry.date === todayKey ? sum + Number(entry.protein) : sum;
     }, 0);
   }, [foodLog, todayKey]);
 
-  const proteinTarget = 75;
-
-  // Task handlers
   const handleAddTask = async (newTask) => {
-    const taskWithTimestamp = { ...newTask, createdAt: Date.now() };
-    const newTaskRef = push(ref(database, 'tasks'));
-    await set(newTaskRef, taskWithTimestamp);
-    setTasks(prevTasks => [...prevTasks, { id: newTaskRef.key, ...taskWithTimestamp }]);
+    try {
+      const taskWithTimestamp = { ...newTask, createdAt: Date.now(), date: todayKey };
+      const response = await fetch(`${API_BASE_URL}/api/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(taskWithTimestamp)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save task');
+      }
+
+      const savedTask = await response.json();
+      setTasks(prevTasks => [savedTask, ...prevTasks]);
+    } catch (error) {
+      console.error('Error adding task:', error);
+      alert('Could not save the task. Please make sure the backend is running.');
+    }
   };
 
   const handleToggleTask = async (taskId) => {
-    const taskToUpdate = tasks.find(task => task.id === taskId);
+    const taskToUpdate = tasks.find(task => Number(task.id) === Number(taskId));
     if (!taskToUpdate) return;
 
-    const updatedTask = {
-      ...taskToUpdate,
-      status: taskToUpdate.status === 'Completed' ? 'Not Completed' : 'Completed'
-    };
-    await update(ref(database, `tasks/${taskId}`), { status: updatedTask.status });
-    setTasks(tasks.map(task => (task.id === taskId ? updatedTask : task)));
+    try {
+      const updatedStatus = taskToUpdate.status === 'Completed' ? 'Not Completed' : 'Completed';
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: updatedStatus })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update task');
+      }
+
+      setTasks(tasks.map(task => (Number(task.id) === Number(taskId) ? { ...task, status: updatedStatus } : task)));
+    } catch (error) {
+      console.error('Error toggling task:', error);
+      alert('Could not update the task status. Please try again.');
+    }
   };
 
   const handleDeleteTask = async (taskId) => {
-    await remove(ref(database, `tasks/${taskId}`));
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('Failed to delete task');
+      }
+      setTasks(prevTasks => prevTasks.filter(task => Number(task.id) !== Number(taskId)));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      alert('Could not delete the task. Please try again.');
+    }
   };
 
-  // Exercise handlers
+  const handleAddFoodLog = async (entry) => {
+    try {
+      const logEntry = { ...entry, createdAt: Date.now() };
+      const response = await fetch(`${API_BASE_URL}/api/food-log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(logEntry)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save food log entry');
+      }
+
+      const savedEntry = await response.json();
+      setFoodLog(prevFoodLog => [...prevFoodLog, savedEntry]);
+    } catch (error) {
+      console.error('Error adding food log entry:', error);
+      alert('Could not save the food log entry. Please make sure the backend is running.');
+    }
+  };
+
+  const handleDeleteFoodLog = async (entryId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/food-log/${entryId}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('Failed to delete food log entry');
+      }
+      setFoodLog(prevFoodLog => prevFoodLog.filter(entry => Number(entry.id) !== Number(entryId)));
+    } catch (error) {
+      console.error('Error deleting food log entry:', error);
+      alert('Could not delete the food log entry. Please try again.');
+    }
+  };
+
+  const handleAddFoodData = async (foodItem) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/foods`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(foodItem)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save food item');
+      }
+
+      const savedFood = await response.json();
+      setFoodDatabase(prevFoodDatabase => [...prevFoodDatabase, savedFood]);
+    } catch (error) {
+      console.error('Error adding custom food:', error);
+      alert('Could not save the food item. Please make sure the backend is running.');
+    }
+  };
+
   const handleSavePlan = (planData) => {
     const updatedPlan = templatePlan.filter(p => p.day !== planData.day);
     setTemplatePlan([...updatedPlan, planData]);
@@ -157,50 +222,38 @@ function App() {
     }
   };
 
-  const handleAddFoodLog = async (entry) => {
-    const newLogRef = push(ref(database, 'foodLog'));
-    await set(newLogRef, entry);
-    setFoodLog(prevFoodLog => [...prevFoodLog, { id: newLogRef.key, ...entry }]);
-  };
-
-  const handleDeleteFoodLog = async (entryId) => {
-    await remove(ref(database, `foodLog/${entryId}`));
-    setFoodLog(prevFoodLog => prevFoodLog.filter(entry => entry.id !== entryId));
-  };
-
-  const handleAddFoodData = async (foodItem) => {
-    const newFoodRef = push(ref(database, 'foodDatabase'));
-    await set(newFoodRef, foodItem);
-    setFoodDatabase(prevFoodDatabase => [...prevFoodDatabase, { id: newFoodRef.key, ...foodItem }]);
-  };
-
   return (
     <Router>
       <div className="App">
         <Navigation />
 
         <main className="App-main">
+          {backendError && (
+            <div className="backend-error" style={{ padding: '16px', backgroundColor: '#fee', color: '#a00', textAlign: 'center' }}>
+              {backendError}
+            </div>
+          )}
           <Routes>
-            <Route 
-              path="/" 
-              element={<DashboardPage tasks={tasks} exerciseHistory={exerciseHistory} foodHistory={foodHistory} caloriesToday={caloriesToday} proteinToday={proteinToday} bmrTarget={bmrTarget} proteinTarget={proteinTarget} />} 
+            <Route
+              path="/"
+              element={<DashboardPage tasks={tasks} exerciseHistory={exerciseHistory} foodHistory={foodHistory} caloriesToday={caloriesToday} proteinToday={proteinToday} bmrTarget={bmrTarget} proteinTarget={75} />}
             />
-            <Route 
-              path="/exercises" 
+            <Route
+              path="/exercises"
               element={
-                <ExercisePage 
+                <ExercisePage
                   templatePlan={templatePlan}
                   onSavePlan={handleSavePlan}
                   onCompleteExercise={handleCompleteExercise}
                   exerciseCompletions={exerciseCompletions}
                   onUpdateCompletions={handleUpdateCompletions}
                 />
-              } 
+              }
             />
-            <Route 
-              path="/food" 
+            <Route
+              path="/food"
               element={
-                <FoodPage 
+                <FoodPage
                   foodDatabase={foodDatabase}
                   foodLog={foodLog}
                   onAddFoodLog={handleAddFoodLog}
@@ -209,16 +262,16 @@ function App() {
                 />
               }
             />
-            <Route 
-              path="/tasks" 
+            <Route
+              path="/tasks"
               element={
-                <TasksPage 
+                <TasksPage
                   tasks={tasks}
                   onAddTask={handleAddTask}
                   onToggleTask={handleToggleTask}
                   onDeleteTask={handleDeleteTask}
                 />
-              } 
+              }
             />
           </Routes>
         </main>

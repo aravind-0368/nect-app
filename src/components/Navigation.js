@@ -17,7 +17,7 @@ function Navigation() {
               to="/" 
               className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
             >
-              <span className="nav-icon">📊</span>
+              <img src="/dashboard-img.png" alt="Dashboard" className="nav-icon" />
               <span className="nav-text">Dashboard</span>
             </Link>
           </li>
@@ -26,7 +26,7 @@ function Navigation() {
               to="/exercises" 
               className={`nav-link ${location.pathname === '/exercises' ? 'active' : ''}`}
             >
-              <span className="nav-icon">💪</span>
+              <img src="/excercise-img.png" alt="Exercises" className="nav-icon" />
               <span className="nav-text">Exercises</span>
             </Link>
           </li>
@@ -35,7 +35,7 @@ function Navigation() {
               to="/food" 
               className={`nav-link ${location.pathname === '/food' ? 'active' : ''}`}
             >
-              <span className="nav-icon">🍎</span>
+              <img src="/food-img.png" alt="Food" className="nav-icon" />
               <span className="nav-text">Food</span>
             </Link>
           </li>
@@ -44,7 +44,7 @@ function Navigation() {
               to="/tasks" 
               className={`nav-link ${location.pathname === '/tasks' ? 'active' : ''}`}
             >
-              <span className="nav-icon">✓</span>
+              <img src="/task-img.png" alt="Tasks" className="nav-icon" />
               <span className="nav-text">Tasks</span>
             </Link>
           </li>
