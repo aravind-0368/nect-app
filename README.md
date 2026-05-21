@@ -1,14 +1,14 @@
 # nect-app
 
-A health activity tracker for Tasks, Exercise, and Food logging.
+A Level up tracker for Tasks, Exercise, and Food logging.
 
 ## Project Overview
 
 `nect-app` combines three main modules:
 
-- **Task Tracker** — create tasks, mark them complete, and earn points.
-- **Exercise Planner** — build exercise templates and track workout completion.
-- **Food Tracker** — log meals, calculate calories, and track nutrition.
+- **Task Tracker** â€” create tasks, mark them complete, and earn points.
+- **Exercise Planner** â€” build exercise templates and track workout completion.
+- **Food Tracker** â€” log meals, calculate calories, and track nutrition.
 
 ## Tech Stack
 
@@ -50,8 +50,8 @@ http://localhost:3000
 
 ## Documentation
 
-- `INSTALLATION.md` — setup and local installation guide
-- `SCHEMA.md` — database schema reference
-- `DEPLOYMENT.md` — Netlify deployment guide
-- `USAGE.md` — end-user application guide
-- `CONTRIBUTING.md` — contribution guide
+- `INSTALLATION.md` â€” setup and local installation guide
+- `SCHEMA.md` â€” database schema reference
+- `DEPLOYMENT.md` â€” Netlify deployment guide
+- `USAGE.md` â€” end-user application guide
+- `CONTRIBUTING.md` â€” contribution guide
